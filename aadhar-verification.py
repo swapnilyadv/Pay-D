@@ -48,20 +48,28 @@ def send_otp(email, otp):
 
 
 def check_user(username, password):
-    """Check if user credentials are valid"""
-    c.execute('SELECT * FROM users WHERE username=? AND password=?', 
-              (username, make_hash(password)))
-    return c.fetchone() is not None
+    """Check if username/password combination exists in database"""
+    hashed_password = make_hash(password)  # Hash the entered password
+    c.execute('SELECT password FROM users WHERE username=?', (username,))
+    record = c.fetchone()
+    if record:
+        stored_password = record[0]  # Retrieve the stored hash
+        return stored_password == hashed_password  # Compare hashes
+    return False
+
+
 
 def add_user(username, email, password, aadhaar, otp):
     """Add user to the database"""
     try:
+        hashed_password = make_hash(password)
         c.execute('INSERT INTO users (username, email, password, aadhaar, otp) VALUES (?, ?, ?, ?, ?)', 
-                  (username, email, make_hash(password), aadhaar, otp))
+                  (username, email, hashed_password, aadhaar, otp))
         conn.commit()
         return True
     except sqlite3.IntegrityError:
         return False
+
 
 def verify_otp(username, entered_otp):
     """Verify the OTP for the user"""
