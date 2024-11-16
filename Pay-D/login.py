@@ -3,6 +3,7 @@ import sqlite3
 import random
 import smtplib
 from hashlib import sha256
+import base64
 
 # Initialize SQLite database
 conn = sqlite3.connect('users.db', check_same_thread=False)
@@ -75,9 +76,64 @@ def verify_otp(username, entered_otp):
         return True
     return False
 
+
+# Utility function to add a logo to the homepage
+# Utility function to add a logo to the homepage
+def add_logo():
+    """Display the Pay-D logo at the top of the page."""
+    st.markdown(
+        """
+        <style>
+            .header-logo {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin-top: 20px;  /* Adjust margin for spacing */
+                margin-bottom: 10px;  /* Adjust margin for spacing */
+            }
+            img {
+                max-width: 100%;
+                display: flex;
+                justify-content: cent
+                width: 150px;  /* Adjusted width for a smaller logo */
+                height: auto;  /* Maintain aspect ratio */
+                border-radius: 10px;  /* Optional: add rounded corners for style */
+                box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);  /* Optional: add shadow for depth */
+            }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    # Path to the logo image in the 'images' folder
+    st.image("images/logo.png", use_container_width=False, width=150)  # Smaller logo centered on the page
+
+
+# Function to set a background image globally
+def set_background(image_file):
+    """Set a background image for the Streamlit app."""
+    with open(image_file, "rb") as f:
+        encoded_string = base64.b64encode(f.read()).decode()
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background-image: url(data:image/png;base64,{encoded_string});
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 # Main Streamlit App
 def main():
-    st.title("Pay-D")
+    # Set the background for the entire app
+    set_background("images/background.jpg")  # Path to the background image in 'images' folder
+    st.logo("images/logo.png", size="medium", link=None, icon_image=None)
+    # st.title("Pay-D")
     
     menu = ["Home", "About Us", "GPT", "Sign In", "Sign Up"]
     
@@ -131,14 +187,15 @@ def main():
                     st.error("Username or Aadhaar already exists.")
             else:
                 st.error("Invalid OTP or OTP expired.")
-
+    
     elif choice == "Account":
         if 'username' in st.session_state:  # Check if the user is logged in
             username = st.session_state.username
             st.subheader(f"Welcome to Pay-D, {username}")
-            
     
     elif choice == "Home":
+        # Set background and logo for the Home page
+        add_logo()  # Display the logo
         st.subheader("Track, Grow, Conserve – One Tree at a Time with Pay-D")
         st.write("""
         Pay-D is a tree tracking platform designed to monitor the growth and health of trees through advanced tracking technologies. Here's how it functions:
@@ -153,7 +210,7 @@ def main():
         
         **Contribution to Conservation**: By tracking trees and promoting sustainable care, Pay-D helps contribute to environmental conservation and awareness.
         """)
-
+    
     elif choice == "About Us":
         st.subheader("About Us")
         st.write("""
