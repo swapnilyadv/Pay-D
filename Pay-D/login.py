@@ -5,9 +5,6 @@ import smtplib
 from hashlib import sha256
 
 # Initialize SQLite database
-import sqlite3
-
-# Initialize SQLite database
 conn = sqlite3.connect('users.db', check_same_thread=False)
 c = conn.cursor()
 
@@ -20,7 +17,6 @@ c.execute('''CREATE TABLE IF NOT EXISTS users
               phone TEXT, 
               document BLOB)''')
 conn.commit()
-
 
 # Utility Functions
 def make_hash(password):
@@ -57,12 +53,11 @@ def check_user(username, password):
     return False
 
 
-
 def add_user(username, email, password, aadhaar, otp):
     """Add user to the database"""
     try:
         hashed_password = make_hash(password)
-        c.execute('INSERT INTO users (username, email, password, aadhaar, otp) VALUES (?, ?, ?, ?, ?)', 
+        c.execute('INSERT INTO users (username, email, password, aadharnumber, otp) VALUES (?, ?, ?, ?, ?)', 
                   (username, email, hashed_password, aadhaar, otp))
         conn.commit()
         return True
@@ -82,9 +77,16 @@ def verify_otp(username, entered_otp):
 
 # Main Streamlit App
 def main():
-    st.title("Pay-D Authentication System")
+    st.title("Pay-D")
     
-    menu = ["Sign In", "Sign Up"]
+    menu = ["Home", "About Us", "GPT", "Sign In", "Sign Up"]
+    
+    # Only show Sign In and Sign Up if the user is not logged in
+    if 'username' in st.session_state:
+        menu.remove("Sign In")
+        menu.remove("Sign Up")
+        menu.append("Account")  # Add Account option if the user is logged in
+
     choice = st.sidebar.selectbox("Menu", menu)
     
     if choice == "Sign In":
@@ -95,6 +97,7 @@ def main():
         
         if st.button("Login"):
             if check_user(username, password):
+                st.session_state.username = username  # Store the username in session state
                 st.success(f"Welcome back, {username}!")
             else:
                 st.error("Invalid username or password.")
@@ -128,6 +131,59 @@ def main():
                     st.error("Username or Aadhaar already exists.")
             else:
                 st.error("Invalid OTP or OTP expired.")
+
+    elif choice == "Account":
+        if 'username' in st.session_state:  # Check if the user is logged in
+            username = st.session_state.username
+            st.subheader(f"Welcome to Pay-D, {username}")
+            
+    
+    elif choice == "Home":
+        st.subheader("Track, Grow, Conserve – One Tree at a Time with Pay-D")
+        st.write("""
+        Pay-D is a tree tracking platform designed to monitor the growth and health of trees through advanced tracking technologies. Here's how it functions:
+        
+        **Tree Registration**: Users can register a tree by inputting its details, including species, planting location, and growth stage.
+        
+        **Tracking Progress**: The platform provides a dynamic map where users can track the tree's growth over time, including height, canopy spread, and overall health.
+        
+        **Monitoring Conditions**: Pay-D integrates environmental data to monitor factors like soil moisture, temperature, and weather patterns that affect tree growth.
+        
+        **Engagement & Rewards**: Users can participate in tree-related initiatives, share updates, and receive rewards or incentives for maintaining and nurturing trees.
+        
+        **Contribution to Conservation**: By tracking trees and promoting sustainable care, Pay-D helps contribute to environmental conservation and awareness.
+        """)
+
+    elif choice == "About Us":
+        st.subheader("About Us")
+        st.write("""
+        Pay-D is a revolutionary payment platform designed to make digital transactions more secure and efficient. 
+        Our goal is to provide fast, reliable, and secure payment services for everyone.
+        """)
+        st.write("Team Members:")
+        st.write("- **Swapnil Yadav**")
+        st.write("- **Raj Kiran**")
+        st.write("- **Pavan J**")
+        st.write("- **Hemasri Sai Lella**")
+    
+    elif choice == "GPT":
+        st.subheader("GPT - Text and Document Processing")
+        st.write("You can enter text and upload a document for processing.")
+        
+        # Text input for GPT
+        user_input = st.text_area("Enter your text here:")
+        
+        # File uploader for document upload
+        uploaded_file = st.file_uploader("Upload a document", type=["pdf", "txt", "docx"])
+        
+        if uploaded_file is not None:
+            # Handle document processing (if required)
+            st.write(f"File '{uploaded_file.name}' uploaded successfully.")
+        
+        if st.button("Submit"):
+            # Handle the GPT submission logic here (e.g., call GPT model or other logic)
+            st.write(f"Processing the input text: {user_input}")
+            # Here you can process the input as needed.
 
 if __name__ == '__main__':
     main()
