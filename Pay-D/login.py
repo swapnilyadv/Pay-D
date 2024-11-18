@@ -9,15 +9,22 @@ import base64
 conn = sqlite3.connect('users.db', check_same_thread=False)
 c = conn.cursor()
 
+
+
 # Create users table if it doesn't exist
-c.execute('''CREATE TABLE IF NOT EXISTS users
-             (username TEXT PRIMARY KEY, 
-              email TEXT, 
-              password TEXT, 
-              aadharnumber INTEGER, 
-              phone TEXT, 
-              document BLOB)''')
+c.execute('''
+CREATE TABLE IF NOT EXISTS users (
+    username TEXT PRIMARY KEY,
+    email TEXT,
+    password TEXT,
+    aadharnumber INTEGER,
+    phone TEXT,
+    document BLOB,
+    otp TEXT
+)
+''')
 conn.commit()
+
 
 # Utility Functions
 def make_hash(password):
@@ -62,8 +69,10 @@ def add_user(username, email, password, aadhaar, otp):
                   (username, email, hashed_password, aadhaar, otp))
         conn.commit()
         return True
-    except sqlite3.IntegrityError:
+    except sqlite3.IntegrityError as e:
+        st.error(f"Database error: {e}")
         return False
+
 
 
 def verify_otp(username, entered_otp):
@@ -76,8 +85,6 @@ def verify_otp(username, entered_otp):
         return True
     return False
 
-
-# Utility function to add a logo to the homepage
 # Utility function to add a logo to the homepage
 def add_logo():
     """Display the Pay-D logo at the top of the page."""
@@ -192,6 +199,11 @@ def main():
         if 'username' in st.session_state:  # Check if the user is logged in
             username = st.session_state.username
             st.subheader(f"Welcome to Pay-D, {username}")
+    
+    elif choice == "Voice assistant":
+        if 'username' in st.session_state:
+            st.subheader("Voice Assistant")
+            st.write("This is the voice assistant page.")
     
     elif choice == "Home":
         # Set background and logo for the Home page
